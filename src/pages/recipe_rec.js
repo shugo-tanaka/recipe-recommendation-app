@@ -19,8 +19,16 @@ const RecipeRec = () => {
   const handleSubmitIngredient = (e) => {
     e.preventDefault();
     console.log("New Ingredient:", ingredientInput);
-    setIngredientList((prevState) => [...prevState, ingredientInput]);
+    setIngredientList((prevState) => [
+      ingredientInput.toLowerCase(),
+      ...prevState,
+    ]);
     setIngredientInput("");
+  };
+
+  const handleRemove = (index) => {
+    setIngredientList((prevState) => prevState.filter((_, i) => i != index));
+    // filter(_, i) -> _ represents the current value, i represents the index it is at.
   };
 
   return (
@@ -35,9 +43,7 @@ const RecipeRec = () => {
           {/* Container for ingredients and additional info */}
           <div className="ingredients-list">
             {/* Container for ingredients header, input bullet, and other bullets */}
-            <h2 className="ingredient-list-header text-2xl text-center">
-              Ingredients
-            </h2>
+            <h2 className="ingredient-list-header text-2xl">Ingredients</h2>
             <div className="ingredient-input">
               <form onSubmit={handleSubmitIngredient}>
                 <input
@@ -52,8 +58,18 @@ const RecipeRec = () => {
             <div className="ingredients-bullets">
               <ul className="list-disc pl-5">
                 {ingredientList.map((ingredient, index) => (
-                  <li key={index} className="mb-1">
-                    {ingredient}
+                  <li
+                    key={index}
+                    className="mb-1 flex items-center justify-between"
+                  >
+                    <span>{ingredient}</span>
+                    <button
+                      onClick={() => handleRemove(index)}
+                      className="ml-2 text-red-500 hover:text-red-700"
+                      aria-label="Remove"
+                    >
+                      x
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -61,16 +77,14 @@ const RecipeRec = () => {
           </div>
           <div className="additional-info">
             {/* Container for additional info header, and the additional info input lines */}
-            <h2 className="additional-info-header text-2xl text-center">
+            <h2 className="additional-info-header text-2xl">
               Additional Information
             </h2>
           </div>
         </div>
         <div className="right-body">
           {/* container for recommendations header and list of recommendations */}
-          <h2 className="recommendations-header text-2xl text-center">
-            Recommendations
-          </h2>
+          <h2 className="recommendations-header text-2xl ">Recommendations</h2>
         </div>
       </div>
     </div>
