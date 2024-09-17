@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
+  --background: #bfdbfe;
   --foreground: #171717;
 }
 
@@ -24,4 +24,22 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.blinking-cursor::after {
+  content: "|"; /* The cursor character */
+  display: inline-block;
+  animation: blink 1s step-start infinite;
 }
