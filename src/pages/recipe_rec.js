@@ -1,3 +1,5 @@
+// error when clicking generate -> probably backend related.
+
 import React from "react";
 import "../app/globals.css";
 import { useState, useEffect } from "react";
@@ -7,14 +9,14 @@ const RecipeRec = () => {
   const [quantityList, setQuantityList] = useState([]);
   const [unitList, setUnitList] = useState([]);
   const [servings, setServings] = useState(1);
-  const [cuisineType, setCuisineType] = useState("");
+  const [cuisineType, setCuisineType] = useState("-");
   const [cookTime, setCookTime] = useState(30);
   const [allergies, setAllergies] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
+  const [recommendations, setRecommendations] = useState("");
   const [ingredientInput, setIngredientInput] = useState("");
   const units = ["unit", "pcs", "g", "kg", "ml", "l", "cup", "tbsp", "tsp"]; //look for more common measurements
   const cuisineList = [
-    "None",
+    "-",
     "Italian",
     "Chinese",
     "Mexican",
@@ -37,6 +39,7 @@ const RecipeRec = () => {
     "Peruvian",
   ];
   const [allergyInput, setAllergyInput] = useState("");
+  const [generateClicked, setGenerateClicked] = useState(1);
 
   const handleInputChange = (e) => {
     const { value } = e.target;
@@ -46,24 +49,40 @@ const RecipeRec = () => {
   const handleSubmitIngredient = (e) => {
     e.preventDefault();
     console.log("New Ingredient:", ingredientInput);
-    setIngredientList((prevState) => [
-      ingredientInput.toLowerCase(),
-      ...prevState,
-    ]);
-    setQuantityList((prevState) => [1, ...prevState]);
-    setUnitList((prevState) => ["", ...prevState]);
-    setIngredientInput("");
+
+    // Use functional updates to ensure you're working with the most recent state
+    setIngredientList((prevState) => {
+      const newIngredientList = [ingredientInput.toLowerCase(), ...prevState];
+      console.log("Updated Ingredient List:", newIngredientList); // Log the updated list
+      return newIngredientList;
+    });
+
+    setQuantityList((prevState) => {
+      const newQuantityList = [1, ...prevState];
+      console.log("Updated Quantity List:", newQuantityList); // Log the updated list
+      return newQuantityList;
+    });
+
+    setUnitList((prevState) => {
+      const newUnitList = ["unit", ...prevState];
+      console.log("Updated Unit List:", newUnitList); // Log the updated list
+      return newUnitList;
+    });
+
+    setIngredientInput(""); // Clear the input field
   };
 
   const handleQuantityChange = (index, e) => {
     const updatedQuantities = [...quantityList];
-    updatedQuantities[index] = e.target.values;
+    updatedQuantities[index] = e.target.value;
     setQuantityList(updatedQuantities);
   };
 
   const handleUnitChange = (index, e) => {
     const updatedUnits = [...unitList];
-    updatedUnits[index] = e.target.values;
+    updatedUnits[index] = e.target.value;
+    // updatedUnits[index].toString();
+    console.log(updatedUnits[index]);
     setUnitList(updatedUnits);
   };
 
@@ -92,14 +111,54 @@ const RecipeRec = () => {
 
   const handleAllergySubmit = (e) => {
     e.preventDefault();
-    console.log("new Allergy:", allergyInput);
-    setAllergies((prevState) => [...prevState, allergyInput]);
+    setAllergies((prevState) => {
+      const newAllergies = [allergyInput, ...prevState];
+      console.log("new Allergies:", newAllergies);
+      return newAllergies;
+    });
     setAllergyInput("");
   };
 
   const handleRemoveAllergy = (index) => {
     setAllergies((prevState) => prevState.filter((_, i) => i != index));
   };
+
+  const handleGenerateClicked = () => {
+    setGenerateClicked(-1 * generateClicked);
+  };
+
+  useEffect(() => {
+    const postInput = () => {
+      const postData = {
+        ingredientsInput: ingredientList,
+        quantityInput: quantityList,
+        unitInput: unitList,
+        servingsInput: servings,
+        cookTimeInput: cookTime,
+        cuisineTypeInput: cuisineType,
+        allergiesInput: allergies,
+      };
+      fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/recipe_recommendation_input`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(postData),
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          setRecommendations(data["response"]);
+          console.log(data);
+        })
+        .catch((error) => {
+          console.error("Error: ", error);
+        });
+    };
+    postInput();
+  }, [generateClicked]);
 
   return (
     <div className="flex flex-col item-center justify-center">
@@ -234,6 +293,13 @@ const RecipeRec = () => {
                 ))}
               </div>
             </div>
+
+            <button
+              className="mt-10 bg-white hover:bg-gray-100 text-gray-800 py-2 px-4 border border-gray-400 rounded shadow"
+              onClick={handleGenerateClicked}
+            >
+              Generate
+            </button>
           </div>
         </div>
         <div className="right-body bg-blue-100 rounded-3xl p-7">
@@ -241,6 +307,7 @@ const RecipeRec = () => {
           <h2 className="recommendations-header text-2xl underline">
             Recommendations:
           </h2>
+          <div className="recommendations-list">{recommendations}</div>
         </div>
       </div>
     </div>
