@@ -1,4 +1,4 @@
-// error when clicking generate -> probably backend related.
+//need to parse the output from gpt.
 
 import React from "react";
 import "../app/globals.css";
