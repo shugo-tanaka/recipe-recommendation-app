@@ -12,7 +12,7 @@ const RecipeRec = () => {
   const [cuisineType, setCuisineType] = useState("-");
   const [cookTime, setCookTime] = useState(30);
   const [allergies, setAllergies] = useState([]);
-  const [recommendations, setRecommendations] = useState("");
+  const [recommendations, setRecommendations] = useState([]);
   const [ingredientInput, setIngredientInput] = useState("");
   const units = ["unit", "pcs", "g", "kg", "ml", "l", "cup", "tbsp", "tsp"]; //look for more common measurements
   const cuisineList = [
@@ -150,7 +150,12 @@ const RecipeRec = () => {
       )
         .then((response) => response.json())
         .then((data) => {
-          setRecommendations(data["response"]);
+          if (Array.isArray(data["response"])) {
+            setRecommendations(data["response"]);
+          } else {
+            console.warn("Expected array but got:", data["response"]);
+            setRecommendations([]); // Set to empty if not an array
+          }
           console.log(data);
         })
         .catch((error) => {
@@ -307,7 +312,25 @@ const RecipeRec = () => {
           <h2 className="recommendations-header text-2xl underline">
             Recommendations:
           </h2>
-          <div className="recommendations-list">{recommendations}</div>
+          <div className="recommendations-list">
+            <ul>
+              {recommendations.length > 0 ? (
+                recommendations.map((rec, index) => (
+                  <li key={index}>
+                    <strong>{rec["name"]}</strong>
+                    <ul className="mb-2">
+                      <li>Cook Time: {rec["cook_time"]}</li>
+                      <li>Ingredients: {rec["ingredients"]}</li>
+                      {/* <li>Instructions: {rec["instructions"]}</li> */}
+                      {/* <li>Source Link: {rec["source"]}</li> */}
+                    </ul>
+                  </li>
+                ))
+              ) : (
+                <li>Please enter ingredients and click generate.</li>
+              )}
+            </ul>
+          </div>
         </div>
       </div>
     </div>
