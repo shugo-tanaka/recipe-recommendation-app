@@ -1,4 +1,8 @@
-//need to parse the output from gpt.
+// make instructions indented -> maybe pass through array and map
+// make food names look clickable.
+// random recipes pulling up before generate is clicked.
+// feedback loop.
+// make loading in recommendation signs when recommendations are being pulled.
 
 import React from "react";
 import "../app/globals.css";
@@ -14,7 +18,20 @@ const RecipeRec = () => {
   const [allergies, setAllergies] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [ingredientInput, setIngredientInput] = useState("");
-  const units = ["unit", "pcs", "g", "kg", "ml", "l", "cup", "tbsp", "tsp"]; //look for more common measurements
+  const units = [
+    "unit",
+    "pcs",
+    "lb",
+    "oz",
+    "g",
+    "kg",
+    "ml",
+    "l",
+    "cup",
+    "tbsp",
+    "tsp",
+    "floz",
+  ]; //look for more common measurements
   const cuisineList = [
     "-",
     "Italian",
@@ -165,15 +182,54 @@ const RecipeRec = () => {
     postInput();
   }, [generateClicked]);
 
+  // Overlay showing cooking instructions if name is clicked.
+  const [clickedIndex, setClickedIndex] = useState(-1);
+
+  const handleClickIndex = (index) => {
+    setClickedIndex(index);
+  };
+
+  const closeRecipeOverlay = () => {
+    setClickedIndex(-1);
+  };
+
   return (
     <div className="flex flex-col item-center justify-center">
       {/* Container for the header and the rest of the website */}
       <h1 className="header text-3xl text-center p-5">
         Recipe Recommendation Generator
       </h1>
+      <div className="cookingInstructions overflow-auto">
+        {clickedIndex !== -1 && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            {/* overlay div */}
+            <div className="bg-white p-5 m-10 rounded shadow">
+              {/* actual div on the overlay */}
+              <ul>
+                <div className="flex flex-row">
+                  <li className="font-semibold text-lg">
+                    {recommendations[clickedIndex]["name"]}
+                  </li>
+                  <span
+                    className="close cursor-pointer ml-auto mr-10"
+                    onClick={closeRecipeOverlay}
+                  >
+                    &times;
+                  </span>
+                </div>
+                <li>Cook Time: {recommendations[clickedIndex]["cook_time"]}</li>
+                <li>
+                  Ingredients: {recommendations[clickedIndex]["ingredients"]}
+                </li>
+                <li>{recommendations[clickedIndex]["instructions"]}</li>
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
       <div className="flex flex-row item-center justify-center pb-10">
         {/* Container for left side and right side */}
-        <div className="flex flex-col item-center justify-center bg-blue-100 rounded-3xl p-7 mr-4">
+        <div className="flex flex-col item-center justify-center bg-blue-100 rounded-3xl p-7 mr-4 w-4/12 max-2-4/12">
           {/* Container for ingredients and additional info */}
           <div className="ingredients-list">
             {/* Container for ingredients header, input bullet, and other bullets */}
@@ -191,7 +247,7 @@ const RecipeRec = () => {
                 />
               </form>
             </div>
-            <div className="ingredients-bullets">
+            <div className="ingredients-bullets h-40 overflow-auto">
               <ul className="list-disc">
                 {ingredientList.map((ingredient, index) => (
                   <li
@@ -307,17 +363,22 @@ const RecipeRec = () => {
             </button>
           </div>
         </div>
-        <div className="right-body bg-blue-100 rounded-3xl p-7">
+        <div className="right-body bg-blue-100 rounded-3xl p-7 w-3/5 max-w-3/5">
           {/* container for recommendations header and list of recommendations */}
           <h2 className="recommendations-header text-2xl underline">
             Recommendations:
           </h2>
-          <div className="recommendations-list">
+          <div className="recommendations-list overflow-auto">
             <ul>
               {recommendations.length > 0 ? (
                 recommendations.map((rec, index) => (
                   <li key={index}>
-                    <strong>{rec["name"]}</strong>
+                    <li
+                      onClick={() => handleClickIndex(index)}
+                      className="font-semibold text-lg cursor-pointer underline, hover:scale-65 transition-transform duration-200"
+                    >
+                      {rec["name"]}
+                    </li>
                     <ul className="mb-2">
                       <li>Cook Time: {rec["cook_time"]}</li>
                       <li>Ingredients: {rec["ingredients"]}</li>
