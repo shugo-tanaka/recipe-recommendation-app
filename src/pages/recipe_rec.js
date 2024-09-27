@@ -1,8 +1,7 @@
-// make instructions indented -> maybe pass through array and map
-// make food names look clickable.
-// random recipes pulling up before generate is clicked.
 // feedback loop.
-// make loading in recommendation signs when recommendations are being pulled.
+
+// List of Completed Items:
+// made recipe names look clickable. no generate on initial render. make loading in recommendation signs when recommendations are being pulled. make instructions indented -> maybe pass through array and map
 
 import React from "react";
 import "../app/globals.css";
@@ -57,6 +56,9 @@ const RecipeRec = () => {
   ];
   const [allergyInput, setAllergyInput] = useState("");
   const [generateClicked, setGenerateClicked] = useState(1);
+  const [initialRender, setInitialRender] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [generateOnce, setGenerateOnce] = useState(false);
 
   const handleInputChange = (e) => {
     const { value } = e.target;
@@ -145,7 +147,8 @@ const RecipeRec = () => {
   };
 
   useEffect(() => {
-    const postInput = () => {
+    const postInput = async () => {
+      setLoading(true);
       const postData = {
         ingredientsInput: ingredientList,
         quantityInput: quantityList,
@@ -155,31 +158,36 @@ const RecipeRec = () => {
         cuisineTypeInput: cuisineType,
         allergiesInput: allergies,
       };
-      fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/recipe_recommendation_input`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(postData),
-        }
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          if (Array.isArray(data["response"])) {
-            setRecommendations(data["response"]);
-          } else {
-            console.warn("Expected array but got:", data["response"]);
-            setRecommendations([]); // Set to empty if not an array
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/recipe_recommendation_input`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(postData),
           }
-          console.log(data);
-        })
-        .catch((error) => {
-          console.error("Error: ", error);
-        });
+        );
+        const data = await response.json();
+        if (Array.isArray(data["response"])) {
+          setRecommendations(data["response"]);
+        } else {
+          console.warn("Expected array but got:", data["response"]);
+          setRecommendations([]); // Set to empty if not an array
+        }
+        console.log(data);
+      } catch (error) {
+        console.error("Error: ", error);
+      } finally {
+        setLoading(false);
+      }
     };
-    postInput();
+    if (initialRender === true) {
+      setGenerateOnce(true);
+      postInput();
+    }
+    setInitialRender(true);
   }, [generateClicked]);
 
   // Overlay showing cooking instructions if name is clicked.
@@ -200,16 +208,17 @@ const RecipeRec = () => {
         Recipe Recommendation Generator
       </h1>
       <div className="cookingInstructions overflow-auto">
+        {/* Container for overlay when dish name is clicked. Pulls up details. */}
         {clickedIndex !== -1 && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
             {/* overlay div */}
             <div className="bg-white p-5 m-10 rounded shadow">
               {/* actual div on the overlay */}
-              <ul>
+              <div>
                 <div className="flex flex-row">
-                  <li className="font-semibold text-lg">
+                  <div className="font-semibold text-lg mb-2 underline">
                     {recommendations[clickedIndex]["name"]}
-                  </li>
+                  </div>
                   <span
                     className="close cursor-pointer ml-auto mr-10"
                     onClick={closeRecipeOverlay}
@@ -217,12 +226,26 @@ const RecipeRec = () => {
                     &times;
                   </span>
                 </div>
-                <li>Cook Time: {recommendations[clickedIndex]["cook_time"]}</li>
-                <li>
+                <div className="mb-2">
+                  Cook Time: {recommendations[clickedIndex]["cook_time"]}
+                </div>
+                <div className="mb-2">
                   Ingredients: {recommendations[clickedIndex]["ingredients"]}
-                </li>
-                <li>{recommendations[clickedIndex]["instructions"]}</li>
-              </ul>
+                </div>
+                <div>Instructions:</div>
+
+                <ul className="instructions-list">
+                  {recommendations[clickedIndex]["instructions"].map(
+                    (rec, index) => (
+                      <li key={index}>
+                        {index + 1}) {rec}
+                      </li>
+                    )
+                  )}
+                </ul>
+
+                {/* <li>{recommendations[clickedIndex]["instructions"]}</li> */}
+              </div>
             </div>
           </div>
         )}
@@ -365,28 +388,56 @@ const RecipeRec = () => {
         </div>
         <div className="right-body bg-blue-100 rounded-3xl p-7 w-3/5 max-w-3/5">
           {/* container for recommendations header and list of recommendations */}
-          <h2 className="recommendations-header text-2xl underline">
+          <h2 className="recommendations-header text-2xl underline mb-2">
             Recommendations:
           </h2>
-          <div className="recommendations-list overflow-auto">
+          <div className="recommendations-list min-h-3/5 overflow-auto">
             <ul>
-              {recommendations.length > 0 ? (
-                recommendations.map((rec, index) => (
-                  <li key={index}>
-                    <li
-                      onClick={() => handleClickIndex(index)}
-                      className="font-semibold text-lg cursor-pointer underline, hover:scale-65 transition-transform duration-200"
-                    >
-                      {rec["name"]}
-                    </li>
-                    <ul className="mb-2">
-                      <li>Cook Time: {rec["cook_time"]}</li>
-                      <li>Ingredients: {rec["ingredients"]}</li>
-                      {/* <li>Instructions: {rec["instructions"]}</li> */}
-                      {/* <li>Source Link: {rec["source"]}</li> */}
-                    </ul>
-                  </li>
-                ))
+              {generateOnce ? (
+                <div>
+                  {loading ? (
+                    <div className="flex items-center justify-center mt-5 mb-5">
+                      {/* Loading spinner */}
+                      <svg
+                        className="animate-spin h-8 w-8 text-blue-600"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        ></path>
+                      </svg>
+                    </div>
+                  ) : (
+                    recommendations.map((rec, index) => (
+                      <li key={index}>
+                        <li
+                          onClick={() => handleClickIndex(index)}
+                          className="font-bold text-bold text-blue-500 underline hover:text-blue-700 cursor-pointer transition-colors duration-200"
+                        >
+                          {rec["name"]}
+                        </li>
+                        <ul className="mb-2">
+                          <li>Cook Time: {rec["cook_time"]}</li>
+                          <li>Ingredients: {rec["ingredients"]}</li>
+                          {/* <li>Instructions: {rec["instructions"]}</li> */}
+                          {/* <li>Source Link: {rec["source"]}</li> */}
+                        </ul>
+                      </li>
+                    ))
+                  )}
+                </div>
               ) : (
                 <li>Please enter ingredients and click generate.</li>
               )}
