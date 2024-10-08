@@ -59,6 +59,7 @@ const RecipeRec = () => {
   const [initialRender, setInitialRender] = useState(false);
   const [loading, setLoading] = useState(false);
   const [generateOnce, setGenerateOnce] = useState(false);
+  const [savedRecipes, setSavedRecipes] = useState([]);
 
   const handleInputChange = (e) => {
     const { value } = e.target;
@@ -201,6 +202,14 @@ const RecipeRec = () => {
     setClickedIndex(-1);
   };
 
+  const handleClickSaveRecipe = (e) => {
+    setSavedRecipes((prevState) => {
+      const newSavedRecipes = [...prevState, e];
+      console.log(newSavedRecipes);
+      return newSavedRecipes;
+    });
+  };
+
   return (
     <div className="flex flex-col item-center justify-center">
       {/* Container for the header and the rest of the website */}
@@ -219,6 +228,14 @@ const RecipeRec = () => {
                   <div className="font-semibold text-lg mb-2 underline">
                     {recommendations[clickedIndex]["name"]}
                   </div>
+                  <button
+                    className="ml-5 bg-white hover:bg-gray-100 text-gray-800 px-4 border border-gray-400 rounded shadow"
+                    onClick={() =>
+                      handleClickSaveRecipe(recommendations[clickedIndex])
+                    }
+                  >
+                    Save
+                  </button>
                   <span
                     className="close cursor-pointer ml-auto mr-10"
                     onClick={closeRecipeOverlay}
