@@ -1,7 +1,6 @@
 // feedback loop.
 
 // List of Completed Items:
-// made recipe names look clickable. no generate on initial render. make loading in recommendation signs when recommendations are being pulled. make instructions indented -> maybe pass through array and map
 
 import React from "react";
 import "../app/globals.css";
@@ -202,12 +201,25 @@ const RecipeRec = () => {
     setClickedIndex(-1);
   };
 
-  const handleClickSaveRecipe = (e) => {
-    setSavedRecipes((prevState) => {
-      const newSavedRecipes = [...prevState, e];
-      console.log(newSavedRecipes);
-      return newSavedRecipes;
-    });
+  const handleClickSaveRecipe = (e, recipeToSave) => {
+    e.preventDefault();
+    console.log(recipeToSave);
+    console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/add_recipe`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(recipeToSave),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Handle the response from the backend if needed
+        console.log(data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   };
 
   return (
@@ -230,9 +242,9 @@ const RecipeRec = () => {
                   </div>
                   <button
                     className="ml-5 bg-white hover:bg-gray-100 text-gray-800 px-4 border border-gray-400 rounded shadow"
-                    onClick={() =>
-                      handleClickSaveRecipe(recommendations[clickedIndex])
-                    }
+                    onClick={(e) => {
+                      handleClickSaveRecipe(e, recommendations[clickedIndex]);
+                    }}
                   >
                     Save
                   </button>

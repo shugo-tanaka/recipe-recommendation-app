@@ -1,3 +1,8 @@
+// To Do:
+
+// Accomplished today:
+// page routes to recipe recommendation page even if email or password are invalid. Maybe async issue?
+
 import React from "react";
 import { useState } from "react";
 // import { supabase } from "../supabaseClient";
@@ -21,21 +26,34 @@ const SignUpPage = () => {
   // Function to handle login
   const handleLogin = async (e) => {
     e.preventDefault();
-    const emailEnd = email.slice(-9).toLowerCase();
-    if (emailEnd === "gmail.com") {
-      setValidEmail(true);
-    } else if (emailEnd === "yahoo.com") {
-      setValidEmail(true);
-    } else {
-      setValidEmail(false);
-    }
-    if (passwordConf === password) {
-      setPassMatch(true);
-    } else {
-      setPassMatch(false);
-      setPasswordConf("");
-    }
-    if (validEmail && passMatch) {
+    // const checkEmail = () => {
+    //   const emailEnd = email.slice(-9).toLowerCase();
+    //   if (emailEnd === "gmail.com") {
+    //     setValidEmail(true);
+    //     return true;
+    //   } else if (emailEnd === "yahoo.com") {
+    //     setValidEmail(true);
+    //     return true;
+    //   } else {
+    //     setValidEmail(false);
+    //     return false;
+    //   }
+    // };
+    const checkPassword = () => {
+      if (passwordConf === password) {
+        setPassMatch(true);
+        return true;
+      } else {
+        setPassMatch(false);
+        setPasswordConf("");
+        return false;
+      }
+    };
+    // const tempValidEmail = checkEmail();
+    const tempPassMatch = checkPassword();
+
+    // if (tempValidEmail && tempPassMatch) {
+    if (tempPassMatch) {
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
       const { data, error } = await supabase.auth.signUp({
         email: email,
@@ -98,6 +116,15 @@ const SignUpPage = () => {
           <button type="submit" className="p-2 bg-blue-500 text-white">
             Sign Up
           </button>
+          <div className="mt-2 text-sm flex justify-center">
+            Want to login?
+            <a
+              href="http://localhost:3000/login"
+              class="text-sm underline ml-1"
+            >
+              Click Here
+            </a>
+          </div>
         </form>
       </div>
     </div>
