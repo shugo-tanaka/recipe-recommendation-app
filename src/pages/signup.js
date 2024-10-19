@@ -1,10 +1,11 @@
 // To Do:
+// create row for saved and favorites once the user signs up.
 
 // Accomplished today:
 // page routes to recipe recommendation page even if email or password are invalid. Maybe async issue?
 
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
@@ -46,6 +47,7 @@ const SignUpPage = () => {
         return false;
       }
     };
+
     // const tempValidEmail = checkEmail();
     const tempPassMatch = checkPassword();
 
@@ -60,11 +62,30 @@ const SignUpPage = () => {
         setError(error.message);
       } else {
         // Redirect or show a success message
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error: error } = await supabase.auth.signInWithPassword({
           email: email,
           password: password,
         });
-        router.push("/recipe_rec"); // route accordingly.
+        const user = await data["user"];
+        const UUID = await user["id"];
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/add_user_row`, {
+          method: "POST",
+          headers: {
+            // Authorization: `Bearer ${UUID}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id: UUID }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            // Handle the response from the backend if needed
+            console.log(data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+
+        router.push("/recipe_rec");
         console.log("Signed Up!");
       }
     }

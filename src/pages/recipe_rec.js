@@ -22,9 +22,9 @@ const RecipeRec = () => {
         data: { user },
       } = await supabase.auth.getUser();
       // console.log(user["id"]);
-      return user["id"];
+      setUUID(user["id"]);
     };
-    setUUID(fetchUser());
+    fetchUser();
   }, []);
 
   const [ingredientList, setIngredientList] = useState([]);
@@ -223,17 +223,17 @@ const RecipeRec = () => {
 
   const handleClickSaveRecipe = (e, recipeToSave) => {
     e.preventDefault();
-    console.log(recipeToSave);
-    // console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
-    // const token = supabase.auth.setSession()?.access_token;
-    // console.log(token);
+    // console.log(recipeToSave);
+    // console.log(exportData);
+    console.log(UUID);
+
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/add_recipe`, {
       method: "POST",
       headers: {
-        // Authorization: `Bearer ${token}`,
+        // Authorization: `Bearer ${UUID}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(recipeToSave),
+      body: JSON.stringify({ uuid: UUID, recipe: recipeToSave }),
     })
       .then((response) => response.json())
       .then((data) => {
