@@ -1,13 +1,9 @@
 import React from "react";
 import { useState } from "react";
-// import { supabase } from "../supabaseClient";
-import { createClient } from "@supabase/supabase-js";
+
 import { useRouter } from "next/router";
 import "../app/globals.css";
-
-// Initialize Supabase client using environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import supabase from "../supabaseClient.js";
 
 const LoginPage = () => {
   const router = useRouter(); // initialize router
@@ -17,7 +13,7 @@ const LoginPage = () => {
 
   // Function to handle login
   const handleLogin = async (e) => {
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // const supabase = createClient(supabaseUrl, supabaseAnonKey);
     e.preventDefault();
     console.log(supabase);
     const { error } = await supabase.auth.signInWithPassword({
@@ -69,7 +65,7 @@ const LoginPage = () => {
             Need and account?
             <a
               href="http://localhost:3000/signup"
-              class="text-sm underline ml-1"
+              className="text-sm underline ml-1"
             >
               SIGN UP
             </a>

@@ -1,12 +1,32 @@
 // feedback loop.
+// sign out user
+// create Saved page
+// populate saved page based on user
+// multiple instances of supabase client issue.
+// row 45-54 pulls an error. maybe not importing supabase correctly.
 
 // List of Completed Items:
 
 import React from "react";
 import "../app/globals.css";
 import { useState, useEffect } from "react";
+// import { createClient } from "@supabase/supabase-js";
+import supabase from "../supabaseClient.js";
 
 const RecipeRec = () => {
+  const [UUID, setUUID] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      // console.log(user["id"]);
+      return user["id"];
+    };
+    setUUID(fetchUser());
+  }, []);
+
   const [ingredientList, setIngredientList] = useState([]);
   const [quantityList, setQuantityList] = useState([]);
   const [unitList, setUnitList] = useState([]);
@@ -204,10 +224,13 @@ const RecipeRec = () => {
   const handleClickSaveRecipe = (e, recipeToSave) => {
     e.preventDefault();
     console.log(recipeToSave);
-    console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
+    // console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
+    // const token = supabase.auth.setSession()?.access_token;
+    // console.log(token);
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/add_recipe`, {
       method: "POST",
       headers: {
+        // Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(recipeToSave),

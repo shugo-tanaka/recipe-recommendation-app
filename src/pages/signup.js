@@ -5,14 +5,11 @@
 
 import React from "react";
 import { useState } from "react";
-// import { supabase } from "../supabaseClient";
+
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 import "../app/globals.css";
-
-// Initialize Supabase client using environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import supabase from "../supabaseClient.js";
 
 const SignUpPage = () => {
   const router = useRouter(); // initialize router
@@ -54,7 +51,7 @@ const SignUpPage = () => {
 
     // if (tempValidEmail && tempPassMatch) {
     if (tempPassMatch) {
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+      // const supabase = createClient(supabaseUrl, supabaseAnonKey);
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
