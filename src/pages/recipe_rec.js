@@ -2,8 +2,6 @@
 // sign out user
 // create Saved page
 // populate saved page based on user
-// multiple instances of supabase client issue.
-// row 45-54 pulls an error. maybe not importing supabase correctly.
 
 // List of Completed Items:
 

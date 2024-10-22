@@ -1,8 +1,6 @@
 // To Do:
-// create row for saved and favorites once the user signs up.
 
 // Accomplished today:
-// page routes to recipe recommendation page even if email or password are invalid. Maybe async issue?
 
 import React from "react";
 import { useState, useEffect } from "react";
