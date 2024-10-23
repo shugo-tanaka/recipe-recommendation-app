@@ -13,6 +13,7 @@ import "../app/globals.css";
 import { useState, useEffect } from "react";
 // import { createClient } from "@supabase/supabase-js";
 import supabase from "../supabaseClient.js";
+import StarRating from "../app/starRating.js";
 
 const RecipeRec = () => {
   const [UUID, setUUID] = useState(null);
@@ -68,6 +69,12 @@ const RecipeRec = () => {
       });
   }, [UUID]);
 
+  const [rating, setRating] = useState(null);
+
+  const handleRating = (newRating) => {
+    setRating(newRating);
+  };
+
   return (
     <div className="flex flex-col item-center justify-center">
       <div className="cookingInstructions overflow-auto">
@@ -79,9 +86,10 @@ const RecipeRec = () => {
               {/* actual div on the overlay */}
               <div>
                 <div className="flex flex-row">
-                  <div className="font-semibold text-lg mb-2 underline">
+                  <div className="font-semibold text-lg mb-2 underline mr-5">
                     {savedRecipes[clickedIndex]["name"]}
                   </div>
+                  <StarRating onRating={handleRating} />
                   <span
                     className="close cursor-pointer ml-auto mr-10"
                     onClick={closeRecipeOverlay}
