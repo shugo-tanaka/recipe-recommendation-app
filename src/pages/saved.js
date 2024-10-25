@@ -2,10 +2,9 @@
 // pulls from supabase table.
 
 // Completed:
-// Need to use endpoint thats being developed to populate this page with saved recipes in similar format as the recipe rec page. If none is saved, put something that says need to save recipes for this page to populate.
 
 // To Do:
-// need to create unsave button
+// need to create unsave button** Look at row 68 -> will need to remove the recipe item but send the index that needs to be removed to the backend since supabase has a list of indeces as opposed to list of recipes.
 // need to create rating system
 
 import React from "react";
@@ -19,6 +18,7 @@ const RecipeRec = () => {
   const [UUID, setUUID] = useState(null);
   const [loading, setLoading] = useState(true);
   const [savedRecipes, setSavedRecipes] = useState([]);
+  const [recipeRatings, setRecipeRatings] = useState([]);
 
   const [clickedIndex, setClickedIndex] = useState(-1);
 
@@ -60,8 +60,14 @@ const RecipeRec = () => {
       .then((data) => {
         // Handle the response from the backend if needed
         console.log(data.saved);
+        console.log(data.ratings);
         if (data.saved && Array.isArray(data.saved[1])) {
           setSavedRecipes(data.saved[1]);
+          setRecipeRatings(data.ratings);
+          const temp = [...data.saved[1]];
+          //   temp.splice(0, 1); // first argument is what index to start. Second argument is how many elements from the start index.
+          //   console.log("prior to splicing", data.saved[1]);
+          //   console.log("after splicing", temp);
         }
       })
       .catch((error) => {
@@ -69,10 +75,65 @@ const RecipeRec = () => {
       });
   }, [UUID]);
 
-  const [rating, setRating] = useState(null);
+  //   const [rating, setRating] = useState(null);
 
-  const handleRating = (newRating) => {
-    setRating(newRating);
+  const handleRating = (newRating, i) => {
+    const temp = [...recipeRatings];
+    temp[i] = newRating;
+    setRecipeRatings(temp);
+    // recipeRatings[i] = newRating;
+    // console.log(recipeToSave);
+    // console.log(exportData);
+    console.log(UUID);
+    console.log(newRating);
+    console.log(recipeRatings);
+    // console.log(recipeRatings);
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/update_rating`, {
+      method: "POST",
+      headers: {
+        // Authorization: `Bearer ${UUID}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id: UUID, ratings: temp }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Handle the response from the backend if needed
+        console.log(data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
+  const unsave = (i) => {
+    const tempSavedRecipes = [...savedRecipes];
+    const tempRecipeRatings = [...recipeRatings];
+
+    tempSavedRecipes.splice(i, 1);
+    tempRecipeRatings.splice(i, 1);
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/unsave_rec`, {
+      method: "POST",
+      headers: {
+        // Authorization: `Bearer ${UUID}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: UUID,
+        indexToRemove: i,
+        newRatings: tempRecipeRatings,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Handle the response from the backend if needed
+        console.log(data);
+        setRecipeRatings(tempRecipeRatings);
+        setSavedRecipes(tempSavedRecipes);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   };
 
   return (
@@ -89,7 +150,23 @@ const RecipeRec = () => {
                   <div className="font-semibold text-lg mb-2 underline mr-5">
                     {savedRecipes[clickedIndex]["name"]}
                   </div>
-                  <StarRating onRating={handleRating} />
+                  <div>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span
+                        key={star}
+                        style={{
+                          cursor: "pointer",
+                          color:
+                            star <= recipeRatings[clickedIndex]
+                              ? "gold"
+                              : "grey",
+                        }}
+                        onClick={() => handleRating(star, clickedIndex)}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
                   <span
                     className="close cursor-pointer ml-auto mr-10"
                     onClick={closeRecipeOverlay}
@@ -157,12 +234,48 @@ const RecipeRec = () => {
                 ) : (
                   savedRecipes.map((rec, index) => (
                     <li key={index}>
-                      <li
-                        onClick={() => handleClickIndex(index)}
-                        className="font-bold text-bold text-blue-500 underline hover:text-blue-700 cursor-pointer transition-colors duration-200"
-                      >
-                        {rec["name"]}
-                      </li>
+                      <div className="flex flex-row">
+                        <li
+                          onClick={() => handleClickIndex(index)}
+                          className="font-bold text-bold text-blue-500 underline hover:text-blue-700 cursor-pointer transition-colors duration-200"
+                        >
+                          {rec["name"]}
+                        </li>
+
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="1em"
+                          height="1em"
+                          viewBox="0 0 32 32"
+                          className="ml-auto"
+                          onClick={() => unsave(index)}
+                        >
+                          <path
+                            fill="currentColor"
+                            d="M12 12h2v12h-2zm6 0h2v12h-2z"
+                          />
+                          <path
+                            fill="currentColor"
+                            d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6zm4 22V8h16v20zm4-26h8v2h-8z"
+                          />
+                        </svg>
+                      </div>
+
+                      <div>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            style={{
+                              cursor: "pointer",
+                              color:
+                                star <= recipeRatings[index] ? "gold" : "grey",
+                            }}
+                            // onClick={() => handleRating(star)}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
                       <ul className="mb-2">
                         <li>Cook Time: {rec["cook_time"]}</li>
                         <li>Ingredients: {rec["ingredients"]}</li>
