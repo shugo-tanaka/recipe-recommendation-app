@@ -4,8 +4,10 @@
 // Completed:
 
 // To Do:
-// need to create unsave button** Look at row 68 -> will need to remove the recipe item but send the index that needs to be removed to the backend since supabase has a list of indeces as opposed to list of recipes.
-// need to create rating system
+// ratings need to be passed to AI so that it can tailor its response. Maybe tailor response if type of cuisine is left blank.
+// Only be able to access saved and recipe rec generator if user is signed in.
+// hover over the navigation bar.
+// consistent formatting -> look at login and sign up page. Make the other two pages similar to this.
 
 import React from "react";
 import "../app/globals.css";
@@ -138,6 +140,15 @@ const RecipeRec = () => {
 
   return (
     <div className="flex flex-col item-center justify-center">
+      <div className="flex flex-row items-center">
+        <h1 className="header text-3xl text-center p-5 mr-72">Sous Chef</h1>
+        <a href="http://localhost:3000/recipe_rec" className="ml-auto mr-5">
+          Recipe Recs
+        </a>
+        <a href="http://localhost:3000/saved" className="mr-20 underline">
+          Saved Recipes
+        </a>
+      </div>
       <div className="cookingInstructions overflow-auto">
         {/* Container for overlay when dish name is clicked. Pulls up details. */}
         {clickedIndex !== -1 && (

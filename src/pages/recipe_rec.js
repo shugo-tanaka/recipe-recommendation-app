@@ -5,6 +5,10 @@
 
 // List of Completed Items:
 
+// To Do:
+// sign out
+// once save is clicked, change display to saved. Maybe make it unsaveable in here as well.
+
 import React from "react";
 import "../app/globals.css";
 import { useState, useEffect } from "react";
@@ -34,6 +38,7 @@ const RecipeRec = () => {
   const [allergies, setAllergies] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [ingredientInput, setIngredientInput] = useState("");
+  const [saved, setSaved] = useState([]);
   const units = [
     "unit",
     "pcs",
@@ -190,6 +195,12 @@ const RecipeRec = () => {
         const data = await response.json();
         if (Array.isArray(data["response"])) {
           setRecommendations(data["response"]);
+          let tempArray = [];
+          for (let i = 0; i < data["response"].length; i++) {
+            tempArray.push(true);
+          }
+          setSaved(tempArray);
+          console.log(tempArray);
         } else {
           console.warn("Expected array but got:", data["response"]);
           setRecommendations([]); // Set to empty if not an array
@@ -219,7 +230,7 @@ const RecipeRec = () => {
     setClickedIndex(-1);
   };
 
-  const handleClickSaveRecipe = (e, recipeToSave) => {
+  const handleClickSaveRecipe = (e, recipeToSave, i) => {
     e.preventDefault();
     // console.log(recipeToSave);
     // console.log(exportData);
@@ -237,6 +248,39 @@ const RecipeRec = () => {
       .then((data) => {
         // Handle the response from the backend if needed
         console.log(data);
+        let tempArray = [...saved];
+        tempArray[i] = false;
+        setSaved(tempArray);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
+  const handleUnsave = (e, i) => {
+    e.preventDefault();
+    // console.log(recipeToSave);
+    // console.log(exportData);
+
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/unsave_rec_v2`, {
+      method: "POST",
+      headers: {
+        // Authorization: `Bearer ${UUID}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: UUID,
+        indexToRemove: i,
+        rec: recommendations[i],
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Handle the response from the backend if needed
+        console.log(data);
+        let tempArray = [...saved];
+        tempArray[i] = true;
+        setSaved(tempArray);
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -246,9 +290,19 @@ const RecipeRec = () => {
   return (
     <div className="flex flex-col item-center justify-center">
       {/* Container for the header and the rest of the website */}
-      <h1 className="header text-3xl text-center p-5">
-        Recipe Recommendation Generator
-      </h1>
+      <div className="flex flex-row items-center">
+        <h1 className="header text-3xl text-center p-5 mr-72">Sous Chef</h1>
+        <a
+          href="http://localhost:3000/recipe_rec"
+          className="ml-auto mr-5 underline"
+        >
+          Recipe Recs
+        </a>
+        <a href="http://localhost:3000/saved" className="mr-20">
+          Saved Recipes
+        </a>
+      </div>
+
       <div className="cookingInstructions overflow-auto">
         {/* Container for overlay when dish name is clicked. Pulls up details. */}
         {clickedIndex !== -1 && (
@@ -261,14 +315,30 @@ const RecipeRec = () => {
                   <div className="font-semibold text-lg mb-2 underline">
                     {recommendations[clickedIndex]["name"]}
                   </div>
-                  <button
-                    className="ml-5 bg-white hover:bg-gray-100 text-gray-800 px-4 border border-gray-400 rounded shadow"
-                    onClick={(e) => {
-                      handleClickSaveRecipe(e, recommendations[clickedIndex]);
-                    }}
-                  >
-                    Save
-                  </button>
+                  {saved[clickedIndex] ? (
+                    <button
+                      className="ml-5 bg-white hover:bg-gray-100 text-gray-800 px-4 border border-gray-400 rounded shadow"
+                      onClick={(e) => {
+                        handleClickSaveRecipe(
+                          e,
+                          recommendations[clickedIndex],
+                          clickedIndex
+                        );
+                      }}
+                    >
+                      Save
+                    </button>
+                  ) : (
+                    <button
+                      className="ml-5 bg-white hover:bg-gray-100 text-gray-800 px-4 border border-gray-400 rounded shadow"
+                      onClick={(e) => {
+                        handleUnsave(e, clickedIndex);
+                      }}
+                    >
+                      Unsave
+                    </button>
+                  )}
+
                   <span
                     className="close cursor-pointer ml-auto mr-10"
                     onClick={closeRecipeOverlay}
