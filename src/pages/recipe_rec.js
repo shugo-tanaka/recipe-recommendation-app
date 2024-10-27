@@ -7,11 +7,10 @@
 
 // To Do:
 // sign out
-// once save is clicked, change display to saved. Maybe make it unsaveable in here as well.
 
 import React from "react";
 import "../app/globals.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 // import { createClient } from "@supabase/supabase-js";
 import supabase from "../supabaseClient.js";
 
@@ -82,6 +81,7 @@ const RecipeRec = () => {
   const [loading, setLoading] = useState(false);
   const [generateOnce, setGenerateOnce] = useState(false);
   const [savedRecipes, setSavedRecipes] = useState([]);
+  const overlayRef = useRef(null);
 
   const handleInputChange = (e) => {
     const { value } = e.target;
@@ -230,6 +230,19 @@ const RecipeRec = () => {
     setClickedIndex(-1);
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (overlayRef.current && !overlayRef.current.contains(event.target)) {
+        closeRecipeOverlay();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [closeRecipeOverlay]);
+
   const handleClickSaveRecipe = (e, recipeToSave, i) => {
     e.preventDefault();
     // console.log(recipeToSave);
@@ -308,7 +321,7 @@ const RecipeRec = () => {
         {clickedIndex !== -1 && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
             {/* overlay div */}
-            <div className="bg-white p-5 m-10 rounded shadow">
+            <div className="bg-white p-5 m-10 rounded shadow" ref={overlayRef}>
               {/* actual div on the overlay */}
               <div>
                 <div className="flex flex-row">
