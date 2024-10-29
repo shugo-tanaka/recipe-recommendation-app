@@ -7,6 +7,7 @@
 
 // To Do:
 // sign out
+// maybe make the different pages into a hamburger.
 
 import React from "react";
 import "../app/globals.css";
@@ -180,6 +181,7 @@ const RecipeRec = () => {
         cookTimeInput: cookTime,
         cuisineTypeInput: cuisineType,
         allergiesInput: allergies,
+        uuid: UUID,
       };
       try {
         const response = await fetch(

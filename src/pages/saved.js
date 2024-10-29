@@ -8,6 +8,7 @@
 // Only be able to access saved and recipe rec generator if user is signed in.
 // hover over the navigation bar.
 // consistent formatting -> look at login and sign up page. Make the other two pages similar to this.
+// close when clicked outside the Box.
 
 import React from "react";
 import "../app/globals.css";
@@ -86,9 +87,10 @@ const RecipeRec = () => {
     // recipeRatings[i] = newRating;
     // console.log(recipeToSave);
     // console.log(exportData);
-    console.log(UUID);
-    console.log(newRating);
-    console.log(recipeRatings);
+    // console.log(UUID);
+    // console.log(newRating);
+    console.log("these are the ratings before", recipeRatings);
+    console.log("these are the ratings after", temp);
     // console.log(recipeRatings);
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/update_rating`, {
       method: "POST",
