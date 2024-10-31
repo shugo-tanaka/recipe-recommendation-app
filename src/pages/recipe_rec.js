@@ -14,6 +14,7 @@ import "../app/globals.css";
 import { useState, useEffect, useRef } from "react";
 // import { createClient } from "@supabase/supabase-js";
 import supabase from "../supabaseClient.js";
+import { useRouter } from "next/router";
 
 const RecipeRec = () => {
   const [UUID, setUUID] = useState(null);
@@ -23,12 +24,18 @@ const RecipeRec = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+      }
       // console.log(user["id"]);
-      setUUID(user["id"]);
+      else {
+        setUUID(user["id"]);
+      }
     };
     fetchUser();
   }, []);
 
+  const router = useRouter();
   const [ingredientList, setIngredientList] = useState([]);
   const [quantityList, setQuantityList] = useState([]);
   const [unitList, setUnitList] = useState([]);
@@ -302,6 +309,20 @@ const RecipeRec = () => {
       });
   };
 
+  const handleSignOut = async (e) => {
+    // const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    e.preventDefault();
+    console.log(supabase);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      setError(error.message);
+    } else {
+      // Redirect or show a success message
+      router.push("/login"); // route accordingly.
+      console.log("Signed out!");
+    }
+  };
+
   return (
     <div className="flex flex-col item-center justify-center">
       {/* Container for the header and the rest of the website */}
@@ -313,8 +334,16 @@ const RecipeRec = () => {
         >
           Recipe Recs
         </a>
-        <a href="http://localhost:3000/saved" className="mr-20">
+        <a href="http://localhost:3000/saved" className="mr-5">
           Saved Recipes
+        </a>
+        <a
+          className="mr-20 cursor-pointer"
+          onClick={(e) => {
+            handleSignOut(e);
+          }}
+        >
+          Sign Out
         </a>
       </div>
 

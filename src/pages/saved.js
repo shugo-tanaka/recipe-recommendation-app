@@ -16,8 +16,10 @@ import { useState, useEffect } from "react";
 // import { createClient } from "@supabase/supabase-js";
 import supabase from "../supabaseClient.js";
 import StarRating from "../app/starRating.js";
+import { useRouter } from "next/router";
 
 const RecipeRec = () => {
+  const router = useRouter();
   const [UUID, setUUID] = useState(null);
   const [loading, setLoading] = useState(true);
   const [savedRecipes, setSavedRecipes] = useState([]);
@@ -38,9 +40,13 @@ const RecipeRec = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      console.log(user["id"]);
-      setUUID(user["id"]);
-      setLoading(false);
+      if (!user) {
+        router.push("/login");
+      } else {
+        console.log(user["id"]);
+        setUUID(user["id"]);
+        setLoading(false);
+      }
     };
     fetchUser();
     // need to access back end end point to pull recepies here based off of uuid returned by fetch user.
@@ -139,6 +145,19 @@ const RecipeRec = () => {
         console.error("Error:", error);
       });
   };
+  const handleSignOut = async (e) => {
+    // const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    e.preventDefault();
+    console.log(supabase);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      setError(error.message);
+    } else {
+      // Redirect or show a success message
+      router.push("/login"); // route accordingly.
+      console.log("Signed out!");
+    }
+  };
 
   return (
     <div className="flex flex-col item-center justify-center">
@@ -147,8 +166,16 @@ const RecipeRec = () => {
         <a href="http://localhost:3000/recipe_rec" className="ml-auto mr-5">
           Recipe Recs
         </a>
-        <a href="http://localhost:3000/saved" className="mr-20 underline">
+        <a href="http://localhost:3000/saved" className="mr-5 underline">
           Saved Recipes
+        </a>
+        <a
+          className="mr-20 cursor-pointer"
+          onClick={(e) => {
+            handleSignOut(e);
+          }}
+        >
+          Sign Out
         </a>
       </div>
       <div className="cookingInstructions overflow-auto">
