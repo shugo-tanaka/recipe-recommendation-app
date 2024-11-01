@@ -2,107 +2,71 @@
 
 // Accomplished today:
 
-import React from "react";
-import { useState, useEffect } from "react";
-
-import { createClient } from "@supabase/supabase-js";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import "../app/globals.css";
 import supabase from "../supabaseClient.js";
 
 const SignUpPage = () => {
-  const router = useRouter(); // initialize router
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
   const [passwordConf, setPasswordConf] = useState("");
   const [passMatch, setPassMatch] = useState(true);
-  const [validEmail, setValidEmail] = useState(true);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // Function to handle login
-  const handleLogin = async (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    // const checkEmail = () => {
-    //   const emailEnd = email.slice(-9).toLowerCase();
-    //   if (emailEnd === "gmail.com") {
-    //     setValidEmail(true);
-    //     return true;
-    //   } else if (emailEnd === "yahoo.com") {
-    //     setValidEmail(true);
-    //     return true;
-    //   } else {
-    //     setValidEmail(false);
-    //     return false;
-    //   }
-    // };
-    const checkPassword = () => {
-      if (passwordConf === password) {
-        setPassMatch(true);
-        return true;
-      } else {
-        setPassMatch(false);
-        setPasswordConf("");
-        return false;
-      }
-    };
+    setLoading(true);
 
-    // const tempValidEmail = checkEmail();
-    const tempPassMatch = checkPassword();
+    // Check if passwords match
+    if (password !== passwordConf) {
+      setPassMatch(false);
+      setLoading(false);
+      return;
+    }
 
-    // if (tempValidEmail && tempPassMatch) {
-    if (tempPassMatch) {
-      // const supabase = createClient(supabaseUrl, supabaseAnonKey);
-      const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-      });
-      if (error) {
-        setError(error.message);
-      } else {
-        // Redirect or show a success message
-        const { data, error: error } = await supabase.auth.signInWithPassword({
-          email: email,
-          password: password,
+    setPassMatch(true);
+    const { error } = await supabase.auth.signUp({ email, password });
+
+    if (error) {
+      setError(error.message);
+    } else {
+      const { data, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
         });
-        const user = await data["user"];
-        const UUID = await user["id"];
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/add_user_row`, {
+      if (signInError) {
+        setError(signInError.message);
+      } else {
+        const userId = data.user.id;
+        await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/add_user_row`, {
           method: "POST",
-          headers: {
-            // Authorization: `Bearer ${UUID}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ id: UUID }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            // Handle the response from the backend if needed
-            console.log(data);
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-          });
-
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: userId }),
+        });
         router.push("/recipe_rec");
-        console.log("Signed Up!");
       }
     }
+    setLoading(false);
   };
 
   return (
-    <div className="p-20 flex flex-col justify-center items-center">
-      <div className="bg-white p-10 rounded-xl">
-        <h2 className="text-2xl font-bold mb-6 flex justify-center text-blue-500">
+    <div className="p-8 flex flex-col justify-center items-center min-h-screen bg-gray-50">
+      <div className="bg-white p-10 rounded-xl shadow-lg max-w-sm w-full">
+        <h2 className="text-2xl font-bold mb-6 text-center text-blue-500">
           Sign Up
         </h2>
-        <form onSubmit={handleLogin} className="flex flex-col">
+        <form onSubmit={handleSignUp} className="flex flex-col">
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="mb-4 p-2 border"
+            className="mb-4 p-3 rounded border focus:ring-2 focus:ring-blue-400"
           />
           <input
             type="password"
@@ -110,7 +74,7 @@ const SignUpPage = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="mb-4 p-2 border"
+            className="mb-4 p-3 rounded border focus:ring-2 focus:ring-blue-400"
           />
           <input
             type="password"
@@ -118,28 +82,29 @@ const SignUpPage = () => {
             value={passwordConf}
             onChange={(e) => setPasswordConf(e.target.value)}
             required
-            className="mb-4 p-2 border"
+            className="mb-4 p-3 rounded border focus:ring-2 focus:ring-blue-400"
           />
-          {!validEmail && (
-            <div className="text-sm text-red-500 mb-2">Invalid Email</div>
-          )}
           {!passMatch && (
-            <div className="text-sm text-red-500 mb-2">
+            <div className="text-sm text-red-500 mb-4">
               Passwords do not match
             </div>
           )}
-          {error && <p className="text-red-500">{error}</p>}
-          <button type="submit" className="p-2 bg-blue-500 text-white">
-            Sign Up
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+          <button
+            type="submit"
+            className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            disabled={loading}
+          >
+            {loading ? "Loading..." : "Sign Up"}
           </button>
-          <div className="mt-2 text-sm flex justify-center">
+          <div className="mt-4 text-sm text-center">
             Want to login?
-            <a
-              href="http://localhost:3000/login"
-              class="text-sm underline ml-1"
+            <span
+              onClick={() => router.push("/login")}
+              className="text-blue-500 underline cursor-pointer ml-1"
             >
               Click Here
-            </a>
+            </span>
           </div>
         </form>
       </div>

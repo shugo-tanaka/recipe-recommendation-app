@@ -6,7 +6,6 @@
 // List of Completed Items:
 
 // To Do:
-
 // maybe make the different pages into a hamburger.
 // custom route guard.
 
@@ -18,6 +17,7 @@ import supabase from "../supabaseClient.js";
 import { useRouter } from "next/router";
 
 const RecipeRec = () => {
+  const [show, setShow] = useState(false);
   const [UUID, setUUID] = useState(null);
 
   useEffect(() => {
@@ -31,6 +31,7 @@ const RecipeRec = () => {
       // console.log(user["id"]);
       else {
         setUUID(user["id"]);
+        setShow(true);
       }
     };
     fetchUser();
@@ -325,291 +326,299 @@ const RecipeRec = () => {
   };
 
   return (
-    <div className="flex flex-col item-center justify-center">
-      {/* Container for the header and the rest of the website */}
-      <div className="flex flex-row items-center">
-        <h1 className="header text-3xl text-center p-5 mr-72">Sous Chef</h1>
-        <a
-          href="http://localhost:3000/recipe_rec"
-          className="ml-auto mr-5 underline"
-        >
-          Recipe Recs
-        </a>
-        <a href="http://localhost:3000/saved" className="mr-5">
-          Saved Recipes
-        </a>
-        <a
-          className="mr-20 cursor-pointer"
-          onClick={(e) => {
-            handleSignOut(e);
-          }}
-        >
-          Sign Out
-        </a>
-      </div>
-
-      <div className="cookingInstructions overflow-auto">
-        {/* Container for overlay when dish name is clicked. Pulls up details. */}
-        {clickedIndex !== -1 && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-            {/* overlay div */}
-            <div className="bg-white p-5 m-10 rounded shadow" ref={overlayRef}>
-              {/* actual div on the overlay */}
-              <div>
-                <div className="flex flex-row">
-                  <div className="font-semibold text-lg mb-2 underline">
-                    {recommendations[clickedIndex]["name"]}
-                  </div>
-                  {saved[clickedIndex] ? (
-                    <button
-                      className="ml-5 bg-white hover:bg-gray-100 text-gray-800 px-4 border border-gray-400 rounded shadow"
-                      onClick={(e) => {
-                        handleClickSaveRecipe(
-                          e,
-                          recommendations[clickedIndex],
-                          clickedIndex
-                        );
-                      }}
-                    >
-                      Save
-                    </button>
-                  ) : (
-                    <button
-                      className="ml-5 bg-white hover:bg-gray-100 text-gray-800 px-4 border border-gray-400 rounded shadow"
-                      onClick={(e) => {
-                        handleUnsave(e, clickedIndex);
-                      }}
-                    >
-                      Unsave
-                    </button>
-                  )}
-
-                  <span
-                    className="close cursor-pointer ml-auto mr-10"
-                    onClick={closeRecipeOverlay}
-                  >
-                    &times;
-                  </span>
-                </div>
-                <div className="mb-2">
-                  Cook Time: {recommendations[clickedIndex]["cook_time"]}
-                </div>
-                <div className="mb-2">
-                  Ingredients: {recommendations[clickedIndex]["ingredients"]}
-                </div>
-                <div>Instructions:</div>
-
-                <ul className="instructions-list">
-                  {recommendations[clickedIndex]["instructions"].map(
-                    (rec, index) => (
-                      <li key={index}>
-                        {index + 1}) {rec}
-                      </li>
-                    )
-                  )}
-                </ul>
-
-                {/* <li>{recommendations[clickedIndex]["instructions"]}</li> */}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="flex flex-row item-center justify-center pb-10">
-        {/* Container for left side and right side */}
-        <div className="flex flex-col item-center justify-center bg-blue-100 rounded-3xl p-7 mr-4 w-4/12 max-2-4/12">
-          {/* Container for ingredients and additional info */}
-          <div className="ingredients-list">
-            {/* Container for ingredients header, input bullet, and other bullets */}
-            <h2 className="ingredient-list-header text-2xl mb-2 underline">
-              Ingredients:
-            </h2>
-            <div className="ingredient-input mr-20">
-              <form onSubmit={handleSubmitIngredient}>
-                <input
-                  className="border blinking-cursor border-gray-300 w-full h-8 mb-2 pl-2"
-                  type="text"
-                  name="ingredientInput"
-                  value={ingredientInput}
-                  onChange={handleInputChange}
-                />
-              </form>
-            </div>
-            <div className="ingredients-bullets h-40 overflow-auto">
-              <ul className="list-disc">
-                {ingredientList.map((ingredient, index) => (
-                  <li
-                    key={index}
-                    className="mb-1 flex items-center justify-between"
-                  >
-                    <span className="mr-1">
-                      {index + 1}) {ingredient}
-                    </span>
-                    <input
-                      className="border border-gray-300 p-2 ml-auto mr-2 w-14 h-8 text-right"
-                      type="number"
-                      value={quantityList[index]}
-                      onChange={(e) => handleQuantityChange(index, e)}
-                    />
-                    <select
-                      className="border border-gray-300 p-1 h-8"
-                      value={unitList[index]}
-                      onChange={(e) => handleUnitChange(index, e)}
-                    >
-                      {units.map((unit) => (
-                        <option key={unit} value={unit}>
-                          {unit}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={() => handleRemove(index)}
-                      className="ml-2 text-red-500 hover:text-red-700 mr-40"
-                      aria-label="Remove"
-                    >
-                      x
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <div className="additional-info">
-            {/* Container for additional info header, and the additional info input lines */}
-            <h2 className="additional-info-header text-2xl mt-5 mb-2 underline">
-              Additional Information:
-            </h2>
-            <div>
-              <span>Servings: </span>
-              <input
-                className="border border-gray-300 p-1 mr-2 w-12 h-8"
-                type="number"
-                value={servings}
-                onChange={handleServingsChange}
-              />
-            </div>
-            <div className="mt-2">
-              <span>Type of Cuisine: </span>
-              <select
-                className="border border-gray-300 p-1 mr-2 h-8"
-                value={cuisineType}
-                onChange={(e) => handleCuisineTypeChange(e)}
-              >
-                {cuisineList.map((cuisine) => (
-                  <option key={cuisine} value={cuisine}>
-                    {cuisine}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="mt-2">
-              <span>Max Cook Time: </span>
-              <input
-                className="border border-gray-300 p-1 mr-2 w-12 h-8"
-                type="number"
-                value={cookTime}
-                onChange={handleCookTimeChange}
-              />
-              <span className="mr-auto"> min</span>
-            </div>
-            <div className="mt-2">
-              <div className="flex flex-row">
-                <span>Allergies: </span>
-                <form onSubmit={handleAllergySubmit}>
-                  <input
-                    className="border border-gray-300 blinking-cursor ml-2 h-8 pl-2"
-                    type="text"
-                    value={allergyInput}
-                    onChange={handleAllergiesChange}
-                  />
-                </form>
-              </div>
-              <div className="flex flex-wrap max-w-80 space-x-w">
-                {allergies.map((allergy, index) => (
-                  <div
-                    key={index}
-                    className="mb-1 flex items-center justify-between"
-                  >
-                    <span>{allergy}</span>
-                    <button
-                      onClick={() => handleRemoveAllergy(index)}
-                      className="ml-1 text-red-500 hover:text-red-700 mr-4"
-                      aria-label="Remove"
-                    >
-                      x
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button
-              className="mt-10 bg-white hover:bg-gray-100 text-gray-800 py-2 px-4 border border-gray-400 rounded shadow"
-              onClick={handleGenerateClicked}
+    <div>
+      {show && (
+        <div className="flex flex-col item-center justify-center">
+          {/* Container for the header and the rest of the website */}
+          <div className="flex flex-row items-center">
+            <h1 className="header text-3xl text-center p-5 mr-72">Sous Chef</h1>
+            <a
+              href="http://localhost:3000/recipe_rec"
+              className="ml-auto mr-5 underline"
             >
-              Generate
-            </button>
+              Recipe Recs
+            </a>
+            <a href="http://localhost:3000/saved" className="mr-5">
+              Saved Recipes
+            </a>
+            <a
+              className="mr-20 cursor-pointer"
+              onClick={(e) => {
+                handleSignOut(e);
+              }}
+            >
+              Sign Out
+            </a>
           </div>
-        </div>
-        <div className="right-body bg-blue-100 rounded-3xl p-7 w-3/5 max-w-3/5">
-          {/* container for recommendations header and list of recommendations */}
-          <h2 className="recommendations-header text-2xl underline mb-2">
-            Recommendations:
-          </h2>
-          <div className="recommendations-list min-h-3/5 overflow-auto">
-            <ul>
-              {generateOnce ? (
-                <div>
-                  {loading ? (
-                    <div className="flex items-center justify-center mt-5 mb-5">
-                      {/* Loading spinner */}
-                      <svg
-                        className="animate-spin h-8 w-8 text-blue-600"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
+
+          <div className="cookingInstructions overflow-auto">
+            {/* Container for overlay when dish name is clicked. Pulls up details. */}
+            {clickedIndex !== -1 && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+                {/* overlay div */}
+                <div
+                  className="bg-white p-5 m-10 rounded shadow"
+                  ref={overlayRef}
+                >
+                  {/* actual div on the overlay */}
+                  <div>
+                    <div className="flex flex-row">
+                      <div className="font-semibold text-lg mb-2 underline">
+                        {recommendations[clickedIndex]["name"]}
+                      </div>
+                      {saved[clickedIndex] ? (
+                        <button
+                          className="ml-5 bg-white hover:bg-gray-100 text-gray-800 px-4 border border-gray-400 rounded shadow"
+                          onClick={(e) => {
+                            handleClickSaveRecipe(
+                              e,
+                              recommendations[clickedIndex],
+                              clickedIndex
+                            );
+                          }}
+                        >
+                          Save
+                        </button>
+                      ) : (
+                        <button
+                          className="ml-5 bg-white hover:bg-gray-100 text-gray-800 px-4 border border-gray-400 rounded shadow"
+                          onClick={(e) => {
+                            handleUnsave(e, clickedIndex);
+                          }}
+                        >
+                          Unsave
+                        </button>
+                      )}
+
+                      <span
+                        className="close cursor-pointer ml-auto mr-10"
+                        onClick={closeRecipeOverlay}
                       >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                        ></path>
-                      </svg>
+                        &times;
+                      </span>
+                    </div>
+                    <div className="mb-2">
+                      Cook Time: {recommendations[clickedIndex]["cook_time"]}
+                    </div>
+                    <div className="mb-2">
+                      Ingredients:{" "}
+                      {recommendations[clickedIndex]["ingredients"]}
+                    </div>
+                    <div>Instructions:</div>
+
+                    <ul className="instructions-list">
+                      {recommendations[clickedIndex]["instructions"].map(
+                        (rec, index) => (
+                          <li key={index}>
+                            {index + 1}) {rec}
+                          </li>
+                        )
+                      )}
+                    </ul>
+
+                    {/* <li>{recommendations[clickedIndex]["instructions"]}</li> */}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-row item-center justify-center pb-10">
+            {/* Container for left side and right side */}
+            <div className="flex flex-col item-center justify-center bg-blue-100 rounded-3xl p-7 mr-4 w-4/12 max-2-4/12">
+              {/* Container for ingredients and additional info */}
+              <div className="ingredients-list">
+                {/* Container for ingredients header, input bullet, and other bullets */}
+                <h2 className="ingredient-list-header text-2xl mb-2 underline">
+                  Ingredients:
+                </h2>
+                <div className="ingredient-input mr-20">
+                  <form onSubmit={handleSubmitIngredient}>
+                    <input
+                      className="border blinking-cursor border-gray-300 w-full h-8 mb-2 pl-2"
+                      type="text"
+                      name="ingredientInput"
+                      value={ingredientInput}
+                      onChange={handleInputChange}
+                    />
+                  </form>
+                </div>
+                <div className="ingredients-bullets h-40 overflow-auto">
+                  <ul className="list-disc">
+                    {ingredientList.map((ingredient, index) => (
+                      <li
+                        key={index}
+                        className="mb-1 flex items-center justify-between"
+                      >
+                        <span className="mr-1">
+                          {index + 1}) {ingredient}
+                        </span>
+                        <input
+                          className="border border-gray-300 p-2 ml-auto mr-2 w-14 h-8 text-right"
+                          type="number"
+                          value={quantityList[index]}
+                          onChange={(e) => handleQuantityChange(index, e)}
+                        />
+                        <select
+                          className="border border-gray-300 p-1 h-8"
+                          value={unitList[index]}
+                          onChange={(e) => handleUnitChange(index, e)}
+                        >
+                          {units.map((unit) => (
+                            <option key={unit} value={unit}>
+                              {unit}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() => handleRemove(index)}
+                          className="ml-2 text-red-500 hover:text-red-700 mr-40"
+                          aria-label="Remove"
+                        >
+                          x
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              <div className="additional-info">
+                {/* Container for additional info header, and the additional info input lines */}
+                <h2 className="additional-info-header text-2xl mt-5 mb-2 underline">
+                  Additional Information:
+                </h2>
+                <div>
+                  <span>Servings: </span>
+                  <input
+                    className="border border-gray-300 p-1 mr-2 w-12 h-8"
+                    type="number"
+                    value={servings}
+                    onChange={handleServingsChange}
+                  />
+                </div>
+                <div className="mt-2">
+                  <span>Type of Cuisine: </span>
+                  <select
+                    className="border border-gray-300 p-1 mr-2 h-8"
+                    value={cuisineType}
+                    onChange={(e) => handleCuisineTypeChange(e)}
+                  >
+                    {cuisineList.map((cuisine) => (
+                      <option key={cuisine} value={cuisine}>
+                        {cuisine}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mt-2">
+                  <span>Max Cook Time: </span>
+                  <input
+                    className="border border-gray-300 p-1 mr-2 w-12 h-8"
+                    type="number"
+                    value={cookTime}
+                    onChange={handleCookTimeChange}
+                  />
+                  <span className="mr-auto"> min</span>
+                </div>
+                <div className="mt-2">
+                  <div className="flex flex-row">
+                    <span>Allergies: </span>
+                    <form onSubmit={handleAllergySubmit}>
+                      <input
+                        className="border border-gray-300 blinking-cursor ml-2 h-8 pl-2"
+                        type="text"
+                        value={allergyInput}
+                        onChange={handleAllergiesChange}
+                      />
+                    </form>
+                  </div>
+                  <div className="flex flex-wrap max-w-80 space-x-w">
+                    {allergies.map((allergy, index) => (
+                      <div
+                        key={index}
+                        className="mb-1 flex items-center justify-between"
+                      >
+                        <span>{allergy}</span>
+                        <button
+                          onClick={() => handleRemoveAllergy(index)}
+                          className="ml-1 text-red-500 hover:text-red-700 mr-4"
+                          aria-label="Remove"
+                        >
+                          x
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  className="mt-10 bg-white hover:bg-gray-100 text-gray-800 py-2 px-4 border border-gray-400 rounded shadow"
+                  onClick={handleGenerateClicked}
+                >
+                  Generate
+                </button>
+              </div>
+            </div>
+            <div className="right-body bg-blue-100 rounded-3xl p-7 w-3/5 max-w-3/5">
+              {/* container for recommendations header and list of recommendations */}
+              <h2 className="recommendations-header text-2xl underline mb-2">
+                Recommendations:
+              </h2>
+              <div className="recommendations-list min-h-3/5 overflow-auto">
+                <ul>
+                  {generateOnce ? (
+                    <div>
+                      {loading ? (
+                        <div className="flex items-center justify-center mt-5 mb-5">
+                          {/* Loading spinner */}
+                          <svg
+                            className="animate-spin h-8 w-8 text-blue-600"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                            ></path>
+                          </svg>
+                        </div>
+                      ) : (
+                        recommendations.map((rec, index) => (
+                          <li key={index}>
+                            <li
+                              onClick={() => handleClickIndex(index)}
+                              className="font-bold text-bold text-blue-500 underline hover:text-blue-700 cursor-pointer transition-colors duration-200"
+                            >
+                              {rec["name"]}
+                            </li>
+                            <ul className="mb-2">
+                              <li>Cook Time: {rec["cook_time"]}</li>
+                              <li>Ingredients: {rec["ingredients"]}</li>
+                              {/* <li>Instructions: {rec["instructions"]}</li> */}
+                              {/* <li>Source Link: {rec["source"]}</li> */}
+                            </ul>
+                          </li>
+                        ))
+                      )}
                     </div>
                   ) : (
-                    recommendations.map((rec, index) => (
-                      <li key={index}>
-                        <li
-                          onClick={() => handleClickIndex(index)}
-                          className="font-bold text-bold text-blue-500 underline hover:text-blue-700 cursor-pointer transition-colors duration-200"
-                        >
-                          {rec["name"]}
-                        </li>
-                        <ul className="mb-2">
-                          <li>Cook Time: {rec["cook_time"]}</li>
-                          <li>Ingredients: {rec["ingredients"]}</li>
-                          {/* <li>Instructions: {rec["instructions"]}</li> */}
-                          {/* <li>Source Link: {rec["source"]}</li> */}
-                        </ul>
-                      </li>
-                    ))
+                    <li>Please enter ingredients and click generate.</li>
                   )}
-                </div>
-              ) : (
-                <li>Please enter ingredients and click generate.</li>
-              )}
-            </ul>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
