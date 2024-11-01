@@ -6,8 +6,9 @@
 // List of Completed Items:
 
 // To Do:
-// sign out
+
 // maybe make the different pages into a hamburger.
+// custom route guard.
 
 import React from "react";
 import "../app/globals.css";

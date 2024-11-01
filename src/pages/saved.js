@@ -4,15 +4,13 @@
 // Completed:
 
 // To Do:
-// ratings need to be passed to AI so that it can tailor its response. Maybe tailor response if type of cuisine is left blank.
-// Only be able to access saved and recipe rec generator if user is signed in.
 // hover over the navigation bar.
 // consistent formatting -> look at login and sign up page. Make the other two pages similar to this.
 // close when clicked outside the Box.
 
 import React from "react";
 import "../app/globals.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 // import { createClient } from "@supabase/supabase-js";
 import supabase from "../supabaseClient.js";
 import StarRating from "../app/starRating.js";
@@ -159,6 +157,21 @@ const RecipeRec = () => {
     }
   };
 
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (overlayRef.current && !overlayRef.current.contains(event.target)) {
+        closeRecipeOverlay();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [closeRecipeOverlay]);
+
   return (
     <div className="flex flex-col item-center justify-center">
       <div className="flex flex-row items-center">
@@ -183,7 +196,7 @@ const RecipeRec = () => {
         {clickedIndex !== -1 && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
             {/* overlay div */}
-            <div className="bg-white p-5 m-10 rounded shadow">
+            <div className="bg-white p-5 m-10 rounded shadow" ref={overlayRef}>
               {/* actual div on the overlay */}
               <div>
                 <div className="flex flex-row">
